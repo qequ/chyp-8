@@ -60,10 +60,10 @@ class Chip8():
                 self.pc = self.stack[self.sp]  # returning from subroutine
                 self.pc += 2
             else:
-                print("SYS instruction - not used anymore")
+                print("{} SYS instruction - not used anymore".format(self.opcode))
         elif mask == 0x1000:
-            print(
-                '{} - JP {} - Jump to lself.opcodeation {}'.format(hex(self.opcode), hex(nnn), hex(nnn)))
+            # jumping to the address nnn
+            self.pc = nnn
         elif mask == 0x2000:
             print(
                 '{} - CALL {} - Call subroutine at {}.'.format(hex(self.opcode), hex(nnn), hex(nnn)))
