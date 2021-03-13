@@ -65,11 +65,16 @@ class Chip8():
             # jumping to the address nnn
             self.pc = nnn
         elif mask == 0x2000:
-            print(
-                '{} - CALL {} - Call subroutine at {}.'.format(hex(self.opcode), hex(nnn), hex(nnn)))
+            # jumping to subroutine at nnn
+            self.stack[self.sp] = self.pc
+            self.sp += 1
+            self.pc = nnn
         elif mask == 0x3000:
-            print(
-                '{} - SE V{}, {} - Skip next instruction if V{} = {}.'.format(hex(self.opcode), x, kk,  x, kk))
+            # The interpreter compares register Vx to kk, and if they are equal, increments the program counter by 2.
+            if self.V[x] == kk:
+                self.pc += 4
+            else:
+                self.pc += 2
         elif mask == 0x4000:
             print('{} - SNE V{}, {} - Skip next instruction if V{} != {}.'.format(
                 hex(self.opcode), x, kk, x, kk))
