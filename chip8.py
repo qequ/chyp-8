@@ -76,17 +76,27 @@ class Chip8():
             else:
                 self.pc += 2
         elif mask == 0x4000:
-            print('{} - SNE V{}, {} - Skip next instruction if V{} != {}.'.format(
-                hex(self.opcode), x, kk, x, kk))
+            #  The interpreter compares register Vx to kk, and if they are not equal, increments the program counter by 2.
+            if self.V[x] != kk:
+                self.pc += 4
+            else:
+                self.pc += 2
+
         elif mask == 0x5000:
-            print(
-                '{} - SE V{}, V{} - Skip next instruction if V{} = V{}.'.format(hex(self.opcode), x, y, x, y))
+            # The interpreter compares register Vx to register Vy, and if they are equal, increments the program counter by 2.
+            if self.V[x] == self.V[y]:
+                self.pc += 4
+            else:
+                self.pc += 2
+
         elif mask == 0x6000:
-            print(
-                '{} - LD V{}, {} - Set V{} = {}.'.format(hex(self.opcode), x, kk, x, kk))
+            #  The interpreter puts the value kk into register Vx.
+            self.V[x] = kk
+            self.pc += 2
         elif mask == 0x7000:
-            print(
-                '{} - ADD V{}, {} - Set V{} = V{} + {}.'.format(hex(self.opcode), x, kk, x, x, kk))
+            #  Adds the value kk to the value of register Vx, then stores the result in Vx. 
+            self.V[x] += kk
+
         elif mask == 0x8000:
             mask2 = self.opcode & 0x000F
             if mask2 == 0x0000:
