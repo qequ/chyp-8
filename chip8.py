@@ -93,10 +93,11 @@ class Chip8():
             #  The interpreter puts the value kk into register Vx.
             self.V[x] = kk
             self.pc += 2
-        elif mask == 0x7000:
-            #  Adds the value kk to the value of register Vx, then stores the result in Vx. 
-            self.V[x] += kk
 
+        elif mask == 0x7000:
+            #  Adds the value kk to the value of register Vx, then stores the result in Vx.
+            self.V[x] += kk
+            self.pc += 2
         elif mask == 0x8000:
             mask2 = self.opcode & 0x000F
             if mask2 == 0x0000:
