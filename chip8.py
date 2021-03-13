@@ -232,31 +232,74 @@ class Chip8():
             mask2 = self.opcode & 0x00FF
 
             if mask2 == 0x0007:
-                print(
-                    '{} - LD V{}, DT - Set V{} = delay timer value.'.format(hex(self.opcode), x, x))
+                #  Set Vx = delay timer value.
+                self.V[x] = self.delay_timer
+                self.pc += 2
+
             elif mask2 == 0x000A:
-                print(
-                    '{} - LD V{}, K - Wait for a key press, store the value of the key in V{}.'.format(hex(self.opcode), x, x))
+                # Wait for a key press, store the value of the key in Vx.
+                key_press = False
+
+                for i in range(16):
+                    if self.keypad[i] != 0:
+                        key_press = True
+                        self.V[x] = i
+
+                if not key_press:
+                    # stop the cycle and try again on the next one
+                    return
+                self.pc += 2
+
             elif mask2 == 0x0015:
-                print(
-                    '{} - LD DT, V{} - Set delay timer = V{}.'.format(hex(self.opcode), x, x))
+                # Set delay timer = Vx.
+                self.delay_timer = self.V[x]
+                self.pc += 2
+
             elif mask2 == 0x0018:
-                print(
-                    '{} - LD ST, V{} - Set sound timer = V{}.'.format(hex(self.opcode), x, x))
+                # Set sound timer = Vx.
+                self.sound_timer = self.V[x]
+                self.pc += 2
+
             elif mask2 == 0x001E:
-                print(
-                    '{} - ADD I, V{} - Set I = I + V{}.'.format(hex(self.opcode), x, x))
+                # Set I = I + Vx.
+
+                if self.I + self.V[x] > 0xFFF:
+                    self.V[0xF] = 1
+                else:
+                    self.V[0xF] = 0
+
+                self.I += self.V[x]
+                self.pc += 2
+
             elif mask2 == 0x0029:
-                print(
-                    '{} - LD F, V{} - Set I = lself.opcodeation of sprite for digit V{}.'.format(hex(self.opcode), x, x))
+                # Set I = location of sprite for digit Vx.
+                self.I = self.V[x] * 0x5
+                self.pc += 2
+
             elif mask2 == 0x0033:
-                print(
-                    '{} - LD B, V{} - Store BCD representation of V{} in memory lself.opcodeations I, I+1, and I+2.'.format(hex(self.opcode), x, x))
+                # The interpreter takes the decimal value of Vx, and places the hundreds digit in memory at location in I,
+                # the tens digit at location I+1, and the ones digit at location I+2.
+                self.memory[self.I] = self.V[x] // 100
+                self.memory[self.I + 1] = (self.V[x]//10) % 10
+                self.memory[self.I + 2] = (self.V[x] % 100) % 10
+                self.pc += 2
+
             elif mask2 == 0x0055:
-                print(
-                    '{} - LD [I], V{} - Store registers V0 through V{} in memory starting at lself.opcodeation I.'.format(hex(self.opcode), x, x))
+                # The interpreter copies the values of registers V0 through Vx into memory, starting at the address in I.
+                for i in range(x):
+                    self.memory[self.I + i] = self.V[i]
+
+                # On the original interpreter, when the operation is done, I = I + X + 1.
+                self.I += x + 1
+                self.pc += 2
+
             elif mask2 == 0x0065:
-                print(
-                    '{} - LD V{}, [I] - Read registers V0 through V{} from memory starting at lself.opcodeation I.'.format(hex(self.opcode), x, x))
+                # The interpreter reads values from memory starting at location I into registers V0 through Vx.
+                for i in range(x):
+                    self.V[i] = self.memory[I+i]
+
+                self.I += x + 1
+                self.pc += 2
+
             else:
                 print('{} - Wrong opcode'.format(hex(self.opcode)))
