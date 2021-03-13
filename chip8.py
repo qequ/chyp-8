@@ -188,8 +188,26 @@ class Chip8():
             self.pc += 2
 
         elif mask == 0xD000:
-            print('{} - DRW V{}, V{}, {} - Display {}-byte sprite starting at memory lself.opcodeation I at (V{}, V{}), set VF = collision.'.format(
-                hex(self.opcode), x, y, (self.opcode & 0x000F), (self.opcode & 0x000F), x, y))
+            height = self.opcode & 0x000F
+            Vx = self.V[x]
+            Vy = self.V[y]
+            self.V[0xF] = 0
+
+            for yline in range(height):
+                # this position in memory contains the byte that sets the row of 8 pixels
+                row_pixels = self.memory[self.I + yline]
+
+                for xline in range(8):
+                    # masking each pixel to check if it's set to 1
+                    if row_pixels & (0x80 >> xline) != 0:
+                        if self.gfx[Vx + xline + ((Vy + yline) * 64)] == 1:
+                            # there is a collision
+                            self.V[0xF] = 1
+                        self.gfx[Vx + xline + ((Vy + yline) * 64)] ^= 1
+
+            self.draw_flag = True
+            self.pc += 2
+
         elif mask == 0xE000:
             mask2 = self.opcode & 0x00FF
             if mask2 == 0x009E:
