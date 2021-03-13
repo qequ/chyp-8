@@ -6,13 +6,11 @@ def dissassemble_rom(file):
 
     opcodes = []
 
-    if len(data) % 2 == 1:
-        data.append(0x00)
 
     for i in range(0, len(data), 2):
         # the opcodes are 2 bytes long, as data is stored at 1 byte length
         #  we have to concatenate it
-        opcodes.append((data[i] << 8) + data[i+1])
+        opcodes.append((data[i] << 8) | data[i+1])
 
     for oc in opcodes:
         mask = oc & 0xF000
@@ -131,3 +129,6 @@ def dissassemble_rom(file):
                     '{} - LD V{}, [I] - Read registers V0 through V{} from memory starting at location I.'.format(hex(oc), x, x))
             else:
                 print('{} - Wrong opcode'.format(hex(oc)))
+
+
+dissassemble_rom("./BLINKY")
