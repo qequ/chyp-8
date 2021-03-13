@@ -1,3 +1,5 @@
+from random import randint
+
 fontset = [0xF0, 0x90, 0x90, 0x90, 0xF0,  # 0
            0x20, 0x60, 0x20, 0x20, 0x70,  # 1
            0xF0, 0x10, 0xF0, 0x80, 0xF0,  # 2
@@ -164,19 +166,27 @@ class Chip8():
             else:
                 print('{} - Wrong opcode'.format(hex(self.opcode)))
         elif mask == 0x9000:
-            if (self.opcode & 0x000F) == 0x0000:
-                print(
-                    '{} - SNE V{}, V{} - Skip next instruction if V{} != V{}.'.format(hex(self.opcode), x, y, x, y))
+            # Skip next instruction if Vx != Vy.
+            if self.V[x] != self.V[y]:
+                self.pc += 4
             else:
-                print('{} - Wrong opcode'.format(hex(self.opcode)))
+                self.pc += 2
+
         elif mask == 0xA000:
-            print('{} - LD I, {} - Set I = {}.'.format(hex(self.opcode), nnn, nnn))
+            # The value of register I is set to nnn.
+            self.I = nnn
+            self.pc += 2
+
         elif mask == 0xB000:
-            print(
-                '{} - JP V0, {} - Jump to lself.opcodeation {} + V0.'.format(hex(self.opcode), nnn, nnn))
+            # Jump to location nnn + V0.
+            self.pc = self.V[0] + nnn
+
         elif mask == 0xC000:
-            print(
-                '{} - RND V{}, {} - Set V{} = random byte AND {}.'.format(hex(self.opcode), x, kk, x, kk))
+            #  The interpreter generates a random number from 0 to 255, which is then ANDed with the value kk.
+            # The results are stored in Vx. See instruction 8xy2 for more information on AND.
+            self.V[x] = randint(0, 255) & kk
+            self.pc += 2
+
         elif mask == 0xD000:
             print('{} - DRW V{}, V{}, {} - Display {}-byte sprite starting at memory lself.opcodeation I at (V{}, V{}), set VF = collision.'.format(
                 hex(self.opcode), x, y, (self.opcode & 0x000F), (self.opcode & 0x000F), x, y))
