@@ -211,11 +211,20 @@ class Chip8():
         elif mask == 0xE000:
             mask2 = self.opcode & 0x00FF
             if mask2 == 0x009E:
-                print(
-                    '{} - SKP V{} - Skip next instruction if key with the value of V{} is pressed.'.format(hex(self.opcode), x, x))
+                # Checks the keyboard, and if the key corresponding to the value of Vx
+                # is currently in the down position, PC is increased by 2.
+                if self.keypad[self.V[x]] != 0:
+                    self.pc += 4
+                else:
+                    self.pc += 2
+
             elif mask2 == 0x00A1:
-                print(
-                    '{} - SKNP V{} - Skip next instruction if key with the value of V{} is not pressed.'.format(hex(self.opcode), x, x))
+                # Skip next instruction if key with the value of Vx is not pressed.
+                if self.keypad[self.V[x]] == 0:
+                    self.pc += 4
+                else:
+                    self.pc += 2
+
             else:
                 print('{} - Wrong opcode'.format(hex(self.opcode)))
 
