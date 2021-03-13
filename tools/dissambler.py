@@ -130,5 +130,3 @@ def dissassemble_rom(file):
             else:
                 print('{} - Wrong opcode'.format(hex(oc)))
 
-
-dissassemble_rom("./BLINKY")
