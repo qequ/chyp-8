@@ -101,32 +101,66 @@ class Chip8():
         elif mask == 0x8000:
             mask2 = self.opcode & 0x000F
             if mask2 == 0x0000:
-                print(
-                    '{} - LD V{}, V{} - Set V{} = V{}.'.format(hex(self.opcode), x, y, x, y))
+                # Stores the value of register Vy in register Vx.
+                self.V[x] = self.V[y]
+                self.pc += 2
+
             elif mask2 == 0x0001:
-                print(
-                    '{} - OR V{}, V{} - Set V{} = V{} OR V{}.'.format(hex(self.opcode), x, y, x, x, y))
+                # Set Vx = Vx OR Vy. Performs a bitwise OR on the values of Vx and Vy, then stores the result in Vx.
+                self.V[x] |= self.V[y]
+                self.pc += 2
+
             elif mask2 == 0x0002:
-                print(
-                    '{} - AND V{}, V{} - Set V{} = V{} AND V{}.'.format(hex(self.opcode), x, y, x, x, y))
+                # Performs a bitwise AND on the values of Vx and Vy, then stores the result in Vx.
+                self.V[x] &= self.V[y]
+                self.pc += 2
+
             elif mask2 == 0x0003:
-                print(
-                    '{} - XOR V{}, V{} - Set V{} = V{} XOR V{}.'.format(hex(self.opcode), x, y, x, x, y))
+                # Performs a bitwise exclusive OR on the values of Vx and Vy, then stores the result in Vx.
+                self.V[x] ^= self.V[y]
+                self.pc += 2
+
             elif mask2 == 0x0004:
-                print(
-                    '{} - ADD V{}, V{} Set V{} = V{} + V{}, set VF = carry.'.format(hex(self.opcode), x, y, x, x, y))
+                # The values of Vx and Vy are added together.
+                # If the result is greater than 8 bits (i.e., > 255,) VF is set to 1, otherwise 0.
+                # Only the lowest 8 bits of the result are kept, and stored in Vx.
+                if self.V[x] + self.V[y] > 0xFF:
+                    self.V[0xF] = 1
+                else:
+                    self.V[0xF] = 0
+
+                self.V[x] += self.V[y]
+                self.pc += 2
+
             elif mask2 == 0x0005:
-                print(
-                    '{} - SUB V{}, V{} - Set V{} = V{} - V{}, set VF = NOT borrow.'.format(hex(self.opcode), x, y, x, x, y))
+                # If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is subtracted from Vx, and the results stored in Vx.
+                if self.V[x] > self.V[y]:
+                    self.V[0xF] = 1
+                else:
+                    self.V[0xF] = 0
+                self.V[x] -= self.V[y]
+                self.pc += 2
+
             elif mask2 == 0x0006:
-                print(
-                    '{} - SHR V{} [ V{}] Set V{} = V{} SHR 1.'.format(hex(self.opcode), x, y, x, x))
+                # If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2.
+                self.V[0xF] = self.V[x] & 0x1
+                self.V[x] >>= 1
+                self.pc += 2
+
             elif mask2 == 0x0007:
-                print(
-                    '{} - SUBN V{}, V{} Set V{} = V{} - V{}, set VF = NOT borrow.'.format(hex(self.opcode), x, y, x, y, x))
+                # If Vy > Vx, then VF is set to 1, otherwise 0. Then Vx is subtracted from Vy, and the results stored in Vx.
+                if self.V[y] > self.V[x]:
+                    self.V[0xF] = 1
+                else:
+                    self.V[0xF] = 0
+                self.V[x] = self.V[y] - self.V[x]
+                self.pc += 2
+
             elif mask2 == 0x000E:
-                print(
-                    '{} - SHL V{} [, V{}]Set V{} = V{} SHL 1.'.format(hex(self.opcode), x, y, x, x))
+                # If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
+                self.V[0xF] = self.V[x] >> 7
+                self.V[x] <<= 1
+                self.pc += 2
             else:
                 print('{} - Wrong opcode'.format(hex(self.opcode)))
         elif mask == 0x9000:
