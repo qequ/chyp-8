@@ -1,89 +1,23 @@
 import random
 import pygame
 
-fontset = [
-    0xF0,
-    0x90,
-    0x90,
-    0x90,
-    0xF0,  # 0
-    0x20,
-    0x60,
-    0x20,
-    0x20,
-    0x70,  # 1
-    0xF0,
-    0x10,
-    0xF0,
-    0x80,
-    0xF0,  # 2
-    0xF0,
-    0x10,
-    0xF0,
-    0x10,
-    0xF0,  # 3
-    0x90,
-    0x90,
-    0xF0,
-    0x10,
-    0x10,  # 4
-    0xF0,
-    0x80,
-    0xF0,
-    0x10,
-    0xF0,  # 5
-    0xF0,
-    0x80,
-    0xF0,
-    0x90,
-    0xF0,  # 6
-    0xF0,
-    0x10,
-    0x20,
-    0x40,
-    0x40,  # 7
-    0xF0,
-    0x90,
-    0xF0,
-    0x90,
-    0xF0,  # 8
-    0xF0,
-    0x90,
-    0xF0,
-    0x10,
-    0xF0,  # 9
-    0xF0,
-    0x90,
-    0xF0,
-    0x90,
-    0x90,  # A
-    0xE0,
-    0x90,
-    0xE0,
-    0x90,
-    0xE0,  # B
-    0xF0,
-    0x80,
-    0x80,
-    0x80,
-    0xF0,  # C
-    0xE0,
-    0x90,
-    0x90,
-    0x90,
-    0xE0,  # D
-    0xF0,
-    0x80,
-    0xF0,
-    0x80,
-    0xF0,  # E
-    0xF0,
-    0x80,
-    0xF0,
-    0x80,
-    0x80,  # F
-]
 
+fontset = [0xF0, 0x90, 0x90, 0x90, 0xF0,  # 0
+           0x20, 0x60, 0x20, 0x20, 0x70,  # 1
+           0xF0, 0x10, 0xF0, 0x80, 0xF0,  # 2
+           0xF0, 0x10, 0xF0, 0x10, 0xF0,  # 3
+           0x90, 0x90, 0xF0, 0x10, 0x10,  # 4
+           0xF0, 0x80, 0xF0, 0x10, 0xF0,  # 5
+           0xF0, 0x80, 0xF0, 0x90, 0xF0,  # 6
+           0xF0, 0x10, 0x20, 0x40, 0x40,  # 7
+           0xF0, 0x90, 0xF0, 0x90, 0xF0,  # 8
+           0xF0, 0x90, 0xF0, 0x10, 0xF0,  # 9
+           0xF0, 0x90, 0xF0, 0x90, 0x90,  # A
+           0xE0, 0x90, 0xE0, 0x90, 0xE0,  # B
+           0xF0, 0x80, 0x80, 0x80, 0xF0,  # C
+           0xE0, 0x90, 0x90, 0x90, 0xE0,  # D
+           0xF0, 0x80, 0xF0, 0x80, 0xF0,  # E
+           0xF0, 0x80, 0xF0, 0x80, 0x80]  # F
 
 # Define a mapping from Pygame key constants to Chip-8 keys
 KEY_MAP = {
@@ -110,21 +44,18 @@ class Chip8:
     def __init__(self):
         self.opcode = 0
         self.memory = [0] * 4096
-        # V == registers
-        self.V = [0] * 16
+        self.V = [0] * 16  # V registers
         self.I = 0  # Index register
-        self.pc = 0x200  # program counter
+        self.pc = 0x200  # Program counter starts at 0x200
         self.gfx = [[0 for _ in range(64)] for _ in range(32)]
         self.delay_timer = 0
         self.sound_timer = 0
-        self.stack = [0] * 16  # for jumping
-        self.sp = 0  # stack pointer
-        self.keypad = [0] * 16  # to check if keys were pressed
+        self.stack = [0] * 16
+        self.sp = 0  # Stack pointer
+        self.keypad = [0] * 16
         self.draw_flag = True
         self.keys = [0] * 16
-
-        for i in range(len(fontset)):
-            # loading the fontset in memory
+        for i in range(80):  # Load fontset
             self.memory[i] = fontset[i]
 
     def load_rom(self, filename):
@@ -364,58 +295,48 @@ class Chip8:
             print(f"Unknown opcode: {opcode:04X}")
             self.pc += 2
 
+    def update_timers(self):
+        if self.delay_timer > 0:
+            self.delay_timer -= 1
+        if self.sound_timer > 0:
+            self.sound_timer -= 1
+
     def run(self):
         pygame.init()
-
-        # Set up the display
-        window_size = (640, 320)  # 10x scale for 64x32 Chip-8 resolution
+        window_size = (640, 320)
         screen = pygame.display.set_mode(window_size)
         pygame.display.set_caption("Chip-8 Emulator")
-
         clock = pygame.time.Clock()
 
-        # Main loop
         running = True
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-
-                # Handle key presses
-                if event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
+                    key_action = 1 if event.type == pygame.KEYDOWN else 0
                     if event.key in KEY_MAP:
-                        self.keypad[KEY_MAP[event.key]] = 1
+                        self.keypad[KEY_MAP[event.key]] = key_action
 
-                # Handle key releases
-                if event.type == pygame.KEYUP:
-                    if event.key in KEY_MAP:
-                        self.keypad[KEY_MAP[event.key]] = 0
-
-            # Emulate one cycle
             self.emulate_cycle()
+            self.update_timers()
 
-            # If the draw flag is set, update the screen
             if self.draw_flag:
                 self.draw_graphics(screen)
                 pygame.display.flip()
                 self.draw_flag = False
 
-            # Cap the frame rate
-            clock.tick(60)
+            clock.tick(60)  # Capping the frame rate at 60fps.
 
         pygame.quit()
 
+
     def draw_graphics(self, screen):
+        # If experiencing flickering, consider clearing the screen here.
         for y in range(32):
             for x in range(64):
-                if self.gfx[y][x] == 1:
-                    pygame.draw.rect(
-                        screen, (255, 255, 255), pygame.Rect(x * 10, y * 10, 10, 10)
-                    )
-                else:
-                    pygame.draw.rect(
-                        screen, (0, 0, 0), pygame.Rect(x * 10, y * 10, 10, 10)
-                    )
+                color = (255, 255, 255) if self.gfx[y][x] == 1 else (0, 0, 0)
+                pygame.draw.rect(screen, color, pygame.Rect(x * 10, y * 10, 10, 10))
 
 
 if __name__ == "__main__":
