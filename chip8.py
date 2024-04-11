@@ -52,7 +52,6 @@ class Chip8:
         self.sound_timer = 0
         self.stack = [0] * 16
         self.sp = 0  # Stack pointer
-        self.keypad = [0] * 16
         self.draw_flag = True
         self.keys = [0] * 16
         for i in range(80):  # Load fontset
@@ -316,7 +315,7 @@ class Chip8:
                 if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
                     key_action = 1 if event.type == pygame.KEYDOWN else 0
                     if event.key in KEY_MAP:
-                        self.keypad[KEY_MAP[event.key]] = key_action
+                        self.keys[KEY_MAP[event.key]] = key_action
 
             self.emulate_cycle()
             self.update_timers()
