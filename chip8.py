@@ -1,3 +1,4 @@
+import argparse
 import random
 import pygame
 
@@ -343,9 +344,15 @@ class Chip8:
                 pygame.draw.rect(screen, color, pygame.Rect(x * 10, y * 10, 10, 10))
 
 
+def main():
+    parser = argparse.ArgumentParser(description='Chip8 Emulator')
+    parser.add_argument('rom', type=str, help='The ROM file to load into the emulator')
+
+    args = parser.parse_args()
+
+    chip8 = Chip8()
+    chip8.load_rom(args.rom)
+    chip8.run()
+
 if __name__ == "__main__":
-    # input to receive via command line the name of the rom
-    input_rom = input("Enter the name of the rom: ")
-    emulator = Chip8()
-    emulator.load_rom(f"games_roms/{input_rom}")
-    emulator.run()
+    main()
