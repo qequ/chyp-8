@@ -1,3 +1,4 @@
+import argparse
 from abc import ABC, abstractmethod
 
 
@@ -65,13 +66,13 @@ class CallHandler(OpcodeHandler):
 class DxynHandler(OpcodeHandler):
     def _check_opcode(self, instruction):
         parts = instruction.split()
-        return parts[0] == "DXYN" and len(parts) == 4
+        return parts[0].startswith("D") and len(parts[0]) == 4
 
     def _generate_bytes(self, instruction):
         parts = instruction.split()
-        x = int(parts[1], 16)
-        y = int(parts[2], 16)
-        n = int(parts[3], 16)
+        x = int(parts[0][1], 16)
+        y = int(parts[0][2], 16)
+        n = int(parts[0][3], 16)
         opcode = 0xD000 | (x << 8) | (y << 4) | n
         return opcode.to_bytes(2, "big")
 
@@ -108,7 +109,7 @@ class SknpHandler(OpcodeHandler):
 
     def _generate_bytes(self, instruction):
         parts = instruction.split()
-        register = int(parts[1][1:], 16)
+        register = int(parts[1][1:], 16)  # Extract the 'x' from 'Vx'
         opcode = 0xE0A1 | (register << 8)
         return opcode.to_bytes(2, "big")
 
@@ -116,40 +117,17 @@ class SknpHandler(OpcodeHandler):
 # Update the OpcodeEmitter class
 class OpcodeEmitter:
     def __init__(self):
+        # TODO - Add all the handlers
         self.handlers = ClsHandler(
             RetHandler(
                 JpHandler(
-                    CallHandler(DxynHandler(LdHandler(LdIHandler(SknpHandler()))))
+                    CallHandler(DxynHandler(LdIHandler(LdHandler(SknpHandler()))))
                 )
             )
         )
 
     def emit(self, instruction):
         return self.handlers.handle(instruction)
-
-
-def parse_instruction(instruction):
-    """
-    Parse a single instruction and return the corresponding opcode bytes.
-    """
-    parts = instruction.split()
-    opcode = None
-
-    if parts[0] == "CLS":
-        opcode = 0x00E0
-    elif parts[0] == "RET":
-        opcode = 0x00EE
-    elif parts[0] == "JP" and len(parts) == 2:
-        addr = int(parts[1], 16)
-        opcode = 0x1000 | addr
-    elif parts[0] == "CALL" and len(parts) == 2:
-        addr = int(parts[1], 16)
-        opcode = 0x2000 | addr
-    else:
-        raise ValueError(f"Unknown instruction: {instruction}")
-
-    # Convert opcode to bytes
-    return opcode.to_bytes(2, "big")
 
 
 def assemble_chip8_program(program_str: str):
@@ -172,15 +150,22 @@ def write_to_file(filename, data):
         f.write(data)
 
 
-# Example program
-program_str = """
-CLS
-JP 200
-CALL 2A2
-RET
-"""
+def main():
+    parser = argparse.ArgumentParser(description="Assemble a CHIP-8 program.")
+    parser.add_argument("input", type=str, help="The input CHIP-8 program file.")
+    parser.add_argument(
+        "output", type=str, help="The output file to write the assembled bytecode to."
+    )
+    args = parser.parse_args()
 
-# Assemble and write to file
-bytecode = assemble_chip8_program(program_str)
-write_to_file("output.ch8", bytecode)
-print("Program assembled and written to output.ch8")
+    with open(args.input, "r") as f:
+        program_str = f.read()
+
+    bytecode = assemble_chip8_program(program_str)
+
+    write_to_file(args.output, bytecode)
+    print(f"Program assembled and written to {args.output}")
+
+
+if __name__ == "__main__":
+    main()
