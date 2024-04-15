@@ -1,3 +1,5 @@
+import argparse
+
 
 def dissassemble_rom(file):
     with open(file, "rb") as rom:
@@ -130,3 +132,14 @@ def dissassemble_rom(file):
             else:
                 print('{} - Wrong opcode'.format(hex(oc)))
 
+
+def main():
+    parser = argparse.ArgumentParser(description='Disassemble a ROM file.')
+    parser.add_argument('file', type=str, help='The ROM file to disassemble.')
+
+    args = parser.parse_args()
+
+    dissassemble_rom(args.file)
+
+if __name__ == "__main__":
+    main()
