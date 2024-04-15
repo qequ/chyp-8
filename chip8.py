@@ -73,6 +73,11 @@ class Chip8:
         if opcode & 0xF000 == 0x1000:  # JP addr
             self.pc = opcode & 0x0FFF
 
+        # Clear the screen
+        elif opcode == 0x00E0:
+            self.screen = [[0] * 64 for _ in range(32)]
+            self.pc += 2
+
         elif opcode == 0x00EE:  # RET opcode
             self.sp -= 1
             self.pc = self.stack[self.sp]
